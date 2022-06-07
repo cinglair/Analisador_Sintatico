@@ -18,7 +18,7 @@
         }
     }
     void mensagem_erro() { 
-        printf("\n\033[0;31mERRO LEXICO ---> Linha %d\033[0;37m\n", line);
+        printf("\n\033[0;31mERRO LEXICO → Linha %d\033[0;37m\n", line);
         error++;
     }
 %}
@@ -35,7 +35,7 @@ flutuante {inteiros}[.]{num}
 \n                     { line++; }
 \t                     {  }
 [[:space:]]            {  }
-[{][^}]*[}]            { comentario(yyleng, yytext);} // Qualquer conteúdo entre { e } que seja diferente de '}' será ignorado!
+[{][^}]*[}]            { comentario(yyleng, yytext);} 
 
 
 
@@ -88,6 +88,6 @@ var                     { return VAR;           }
 {idErro}                { mensagem_erro();      }
 {numErro}               { mensagem_erro();      }
 
-.                      { mensagem_erro();}
+.                       { mensagem_erro();}
 
 %%

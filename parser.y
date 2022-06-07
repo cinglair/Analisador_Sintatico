@@ -48,16 +48,16 @@
         ID     
 
 %right NOT
-%left  MULT DIV
+%left  MULTIPLY DIV
 %left  PLUS MINUS
 %left  SMALLER BIGGER SMALLEQ BIGGEQ
 %left  EQUAL DIF
 %left  TRUE FALSE
-%right ASSIGN
+%right ATRIB
 
 %%
 
-programa: PROG identificador SEMICON bloco          { printf("P -> prog ID; BLOCO \n\n\033[0;32m  Nenhum erro encontrado.\033[0;37m");};
+programa: PROG identificador SEMICON bloco          { printf("P -> prog ID; BLOCO \n\n\033[0;32m Concluído → Nenhum erro encontrado.\033[0;37m");};
    ;
 bloco: VAR declaracao START comandos END            { printf("B -> var DECLA inicio CMD fim\n");}
    ;
@@ -88,7 +88,7 @@ cmd_NaoAssociado: IF expressao THEN comando         { printf("CMD_NAO_ASSOCIADO 
     | IF expressao THEN cmd_Associado ELSE cmd_NaoAssociado { printf("CMD_NAO_ASSOCIADO -> se EXPRESSAO entao CMD_ASSOCIADO senao CMD_NAO_ASSOCIADO\n");}
    ;
 /*Fim da correção de ambiguidade*/
-atribuicao: identificador ASSIGN expressao          { printf("ATRIB -> IDEN := EXPR\n");}
+atribuicao: identificador ATRIB expressao           { printf("ATRIB -> IDEN := EXPR\n");}
    ;
 enquanto: FOR expressao DO cmd_Associado            { printf("ENQUANTO -> enquanto EXPRESSAO faca CMD_ASSOCIADO\n");}
    ;
@@ -116,7 +116,7 @@ operador: PLUS                                      { printf("OPERADOR -> +\n");
 termo: fator                                        { printf("TERMO -> FATOR\n");}
     | fator op fator                                { printf("TERMO -> FATOR OPERADOR FATOR\n");}
    ;
-op: MULT                                            { printf("OP -> *\n");}
+op: MULTIPLY                                        { printf("OP -> *\n");}
     | DIV                                           { printf("OP -> div\n");}
     | AND                                           { printf("OP -> e\n");}
    ;
@@ -132,3 +132,4 @@ identificador: ID                                   { printf("IDENTIFICADOR -> i
 numero: NUM                                         { printf("NUM -> num\n");}
    ;
 %%
+
