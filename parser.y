@@ -1,10 +1,19 @@
 %{
     #include <stdio.h>
     #include <stdlib.h>
+    #include <string.h>
+    #include "storage.h"
 
     extern void yyerror(const char *msg);
     extern int yylex(void);
+    Storage *storage;
+    int memory[30];
 %}
+
+%union{
+        int value;
+        char* lex_value;
+}
 
 %token  
         IF  
@@ -54,82 +63,97 @@
 %left  EQUAL DIF
 %left  TRUE FALSE
 %right ATRIB
+%type <value> numero fator termo simples expressao nome_var
+%start programa
 
 %%
 
-programa: PROG identificador SEMICON bloco          { printf("P -> prog ID; BLOCO \n\n\033[0;32m Concluído → Nenhum erro encontrado.\033[0;37m");};
+programa: PROG identificador SEMICON bloco          { printf("\n\n\033[0;32m Concluído → Nenhum erro encontrado.\033[0;37m"); clearStorage(storage);};
    ;
-bloco: VAR declaracao START comandos END            { printf("B -> var DECLA inicio CMD fim\n");}
+bloco: VAR declaracao START comandos END            { ;}
    ;
-declaracao: nome_var DOUBDOT tipo SEMICON           { printf("DECLA -> VARNAME : TIPO;\n");}
-    | nome_var DOUBDOT tipo SEMICON declaracao      { printf("DECLA -> VARNAME : TIPO; DECLA\n");}
+declaracao: nome_var DOUBDOT tipo SEMICON           { ;}
+    | nome_var DOUBDOT tipo SEMICON declaracao      { ;}
    ;
-nome_var: identificador                             { printf("VARNAME -> IDEN\n");}
-    | identificador COL nome_var                    { printf("VARNAME -> IDEN , VARNAME\n");}
+nome_var: identificador                             { ;}
+    | identificador COL nome_var                    { ;}
    ;
-tipo: INT                                           { printf("TIPO -> .inteiro\n");}
-    | REAL                                          { printf("TIPO -> .real\n");}
-    | BOOL                                          { printf("TIPO -> .booleano\n");}
+tipo: INT                                           { ;}
+    | REAL                                          { ;}
+    | BOOL                                          { ;}
    ;
-comandos: comando                                   { printf("CMDS -> CMD\n");}
-    | comando SEMICON comandos                      { printf("CMDS -> CMD; CMDS\n");}
+comandos: comando                                   { ;}
+    | comando SEMICON comandos                      { ;}
    ;
     /*Correção de ambiguidade*/
-comando: cmd_Associado                              { printf("CMD -> CMD_ASSOCIADO\n");}
-    | cmd_NaoAssociado                              { printf("CMD -> CMD_NAO_ASSOCIADO\n");}                 
+comando: cmd_Associado                              { ;}
+    | cmd_NaoAssociado                              { ;}                 
    ;
-cmd_Associado: IF expressao THEN cmd_Associado ELSE cmd_Associado { printf("CMD_ASSOCIADO -> se EXPRESSAO entao CMD_ASSOCIADO senao CMD_ASSOCIADO\n");}  
-    | atribuicao                                    { printf("CMD -> ATRIB\n");}
-    | enquanto                                      { printf("CMD -> ENQUANTO\n");}
-    | leitura                                       { printf("CMD -> LEITURA\n");}
-    | escrita                                       { printf("CMD -> ESCRITA\n");}
+cmd_Associado: IF expressao THEN cmd_Associado ELSE cmd_Associado { ;}  
+    | atribuicao                                    { ;}
+    | enquanto                                      { ;}
+    | leitura                                       { ;}
+    | escrita                                       { ;}
    ;
-cmd_NaoAssociado: IF expressao THEN comando         { printf("CMD_NAO_ASSOCIADO -> se EXPRESSAO entao CMD\n");}
-    | IF expressao THEN cmd_Associado ELSE cmd_NaoAssociado { printf("CMD_NAO_ASSOCIADO -> se EXPRESSAO entao CMD_ASSOCIADO senao CMD_NAO_ASSOCIADO\n");}
+cmd_NaoAssociado: IF expressao THEN comando         { ;}
+    | IF expressao THEN cmd_Associado ELSE cmd_NaoAssociado { ;}
    ;
 /*Fim da correção de ambiguidade*/
-atribuicao: identificador ATRIB expressao           { printf("ATRIB -> IDEN := EXPR\n");}
+atribuicao: identificador ATRIB expressao           { ;  if(isEmpty(storage)){
+        storage = createStorage();
+                                                      } insertBox(storage, $<lex_value>1, $<value>3);
+                                                      }
    ;
-enquanto: FOR expressao DO cmd_Associado            { printf("ENQUANTO -> enquanto EXPRESSAO faca CMD_ASSOCIADO\n");}
+enquanto: FOR expressao DO cmd_Associado            {;}
    ;
-leitura: READ OPENPARENT identificador CLOSEPARENT  { printf("LEITURA -> leia (IDEN)\n");}
+leitura: READ OPENPARENT identificador CLOSEPARENT  { ;}
    ;
-escrita: WRITE OPENPARENT identificador CLOSEPARENT { printf("LEITURA -> escreva (IDEN)\n");}
+escrita: WRITE OPENPARENT identificador CLOSEPARENT { ;printf("%d\n", getValue(storage, $<lex_value>3));}
    ;
-expressao: simples                                  { printf("EXPRESSAO -> SIMP\n");}
-    | simples opRelacional simples                  { printf("EXPRESSAO -> SIMP RELACIONAL SIMP\n");}
+expressao: simples                                  { ;}
+    | simples opRelacional simples                  { ;$<value>$ = $<value>1;}
    ;
-opRelacional: DIF                                   { printf("RELACIONAL -> <>\n");}
-    | EQUAL                                         { printf("RELACIONAL -> =\n");}
-    | SMALLER                                       { printf("RELACIONAL -> <\n");}
-    | BIGGER                                        { printf("RELACIONAL -> >\n");}
-    | SMALLEQ                                       { printf("RELACIONAL -> <=\n");}
-    | BIGGEQ                                        { printf("RELACIONAL -> >=\n");}
+opRelacional: DIF                                   { ;}
+    | EQUAL                                         { ;}
+    | SMALLER                                       { ;}
+    | BIGGER                                        { ;}
+    | SMALLEQ                                       { ;}
+    | BIGGEQ                                        { ;}
    ;
-simples: termo operador termo                       { printf("SIMP -> TERMO OPERADOR TERMO\n");}
-    | termo                                         { printf("SIMP -> TERMO\n");}
+simples: termo operador termo                       { ;  if(strcmp($<lex_value>2, "+") == 0){
+                                                               $<value>$ = $<value>1 + $<value>3;
+                                                      }else if(strcmp($<lex_value>2, "-") == 0){
+                                                               $<value>$ = $<value>1 - $<value>3;
+                                                      }
+                                                      }
+    | termo                                         { ;$<value>$ = $<value>1;}
    ;
-operador: PLUS                                      { printf("OPERADOR -> +\n");}
-    | MINUS                                         { printf("OPERADOR -> -\n");}
-    | OR                                            { printf("OPERADOR -> ou\n");}
+operador: PLUS                                      { ;}
+    | MINUS                                         { ;}
+    | OR                                            { ;}
    ;
-termo: fator                                        { printf("TERMO -> FATOR\n");}
-    | fator op fator                                { printf("TERMO -> FATOR OPERADOR FATOR\n");}
+termo: fator                                        { ;$<value>$ = $<value>1;}
+    | fator op fator                                { ; if(strcmp($<lex_value>2, "*") == 0){
+                                                                           $<value>$ = $<value>1 * $<value>3;}
+                                                                 else if(strcmp($<lex_value>2 , "div") == 0){
+                                                                           $<value>$ = $<value>1 / $<value>3;
+                                                                  }
+                                                         }
    ;
-op: MULTIPLY                                        { printf("OP -> *\n");}
-    | DIV                                           { printf("OP -> div\n");}
-    | AND                                           { printf("OP -> e\n");}
+op: MULTIPLY                                        { ;}
+    | DIV                                           { ;}
+    | AND                                           { ;}
    ;
-fator: identificador                                { printf("FATOR -> IDEN\n");}
-    | numero                                        { printf("FATOR -> NUM\n");}
-    | OPENPARENT expressao CLOSEPARENT              { printf("FATOR -> (EXPRESSAO)\n");}
-    | TRUE                                          { printf("FATOR -> verdadeiro\n");}
-    | FALSE                                         { printf("FATOR -> falso\n");}
-    | NOT fator                                     { printf("FATOR -> not FATOR\n");}
+fator: identificador                                { ;$<value>$ = getValue(storage, $<lex_value>1);}
+    | numero                                        { ;$<value>$ = $<value>1;}
+    | OPENPARENT expressao CLOSEPARENT              { ; $<value>$ = $<value>2;}
+    | TRUE                                          { ;}
+    | FALSE                                         { ;}
+    | NOT fator                                     { ;}
    ;
-identificador: ID                                   { printf("IDENTIFICADOR -> id\n");}
+identificador: ID                                   { ;}
    ;
-numero: NUM                                         { printf("NUM -> num\n");}
+numero: NUM                                         { ;$<value>$ = $<value>1;}
    ;
 %%
 

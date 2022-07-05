@@ -8,7 +8,7 @@
     
     int line = 1; //Contador de linhas
     int error = 0; //Contador de erros
-    extern int yyval;
+    extern YYSTYPE yylval;
 
     void comentario (int tam, char *coment) {
         int i;
@@ -60,8 +60,8 @@ funcao                  { return FUNC;          }
 ou                      { return OR;            }
 ":="                    { return ATRIB;         }
 ":"                     { return DOUBDOT;       } 
-[+]                     { return PLUS;          }
-[-]                     { return MINUS;         }
+[+]                     { yylval.lex_value = strdup(yytext); return PLUS;          }
+[-]                     { yylval.lex_value = strdup(yytext); return MINUS;         }
 [;]                     { return SEMICON;       }
 [,]                     { return COL;           }
 
@@ -71,8 +71,8 @@ ou                      { return OR;            }
 [[]                     { return OPENBRACES;    }
 []]                     { return CLOSEBRACES;   }
 
-[*]                     { return MULTIPLY;      }
-div                     { return DIV;           }
+[*]                     { yylval.lex_value = strdup(yytext); return MULTIPLY;      }
+div                     { yylval.lex_value = strdup(yytext); return DIV;           }
 e                       { return AND;           }
 verdadeiro              { return TRUE;          }
 falso                   { return FALSE;         }
@@ -81,13 +81,13 @@ leia                    { return READ;          }
 escreva                 { return WRITE;         }
 programa                { return PROG;          }
 fim                     { return END;           }
-{inteiros}              { return NUM;           }
+{inteiros}              { yylval.value = atoi(yytext); return NUM;           }
 {flutuante}             { return NUM;           }
 var                     { return VAR;           }
-{id}                    { return ID;            }
+{id}                    { yylval.lex_value = strdup(yytext); return ID;            }
 {idErro}                { mensagem_erro();      }
 {numErro}               { mensagem_erro();      }
 
-.                       { mensagem_erro();}
+.                       { mensagem_erro(); }
 
 %%
